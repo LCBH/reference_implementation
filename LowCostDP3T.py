@@ -224,27 +224,31 @@ class ContactManager:
     # Update infected and local risk scoring
     ########################################
 
-    def check_infected(self, inf_SK0, date, now=None):
+    def check_infected(self, inf_SK0, dateInfectious, datePublished):
         ''' Checks if our database was exposed to an infected SK starting on date.
 
                 NOTE: this implementation uses the date of the SK_t to reduce the
-                number of comparisons. The backend needs to store <SK, date> tuples.
+                number of comparisons. The backend needs to store <SK, date,
+                datePublish> tuples.
 
                 Check if we recorded a contact with a given SK0 across in our
                 database of contact records. This implementation assumes we are
-                given a date of infection and checks on a per-day basis.
+                given a date of infection and a date of publication and checks
+                on a per-day basis.
 
                 Arguments
                         infSK0(b[]): SK_t of infected
-                        date(str): date of SK_t (i.e., the t in the form 2020-04-23).
-                        now(datetime): current date for mock testing.
+                        dateInfectious(str): date of SK_t (i.e., the t in the
+                                             form 2020-04-23).
+                        datePublish(datetime): date of publication of SK_t (same
+                                               format).
         '''
-        if now is None:
-            now = datetime.now(timezone.utc)
-        infect_date = datetime.strptime(date, "%Y-%m-%d")
-        days_infected = (now-infect_date).days
+        infectious_date = datetime.strptime(dateInfectious, "%Y-%m-%d")
+        published_date = datetime.strptime(datePublished, "%Y-%m-%d")
+        days_infected = (published_date-infectious_date).days
         inf_SK = inf_SK0
-        for day in range(days_infected, -1, -1):
+        # We do not compute the SK key of the day of the publication
+        for day in range(days_infected, 0, -1):
             # Create infected EphIDs and rotate infected SK
             infected_ephIDs = KeyStore.create_ephIDs(inf_SK)
             inf_SK = KeyStore.get_SKt1(inf_SK)
@@ -259,7 +263,7 @@ class ContactManager:
                 if inf_ephID in self.contacts[day]:
                     duration = self.contacts[day][inf_ephID]
                     print(
-                        "At risk, observed {} on day -{} for {}".format(inf_ephID.hex(), day, duration))
+                        "At risk, observed {} on day ({})-{} day(s) for {} seconds".format(inf_ephID.hex(), datePublished, day, duration))
 
 
 # Mock Application that ties contact manager and keystore together

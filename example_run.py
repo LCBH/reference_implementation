@@ -64,6 +64,10 @@ if __name__ == "__main__":
         bob.next_day()
         isidor.next_day()
 
+    print("Isidor is now infectious.")
+    infectious_date = datetime.utcfromtimestamp(epotime)
+    infections_SK = isidor.keystore.SKt[0]
+
     print("Day: Bob and Isidor meet for dinner.")
     for hour in range(17, 20):
         for epoch in range(60//LowCostDP3T.EPOCH_LENGTH):
@@ -81,15 +85,17 @@ if __name__ == "__main__":
             bob.next_epoch()
             isidor.next_epoch()
 
-    print("Isidor is tested positive.")
-    infectious_date = datetime.utcfromtimestamp(epotime)
-    infections_SK = isidor.keystore.SKt[0]
-
     # Tik Tok
     epotime += 24*60*60
     alice.next_day()
     bob.next_day()
     isidor.next_day()
+
+    print("Isidor is tested positive and publish infectious_SK (from yesterday).")
+    published_date = datetime.utcfromtimestamp(epotime)
+
+    # Tik Tok
+    epotime += 2*60*60
 
     # Alice receives a replay and should not be positive because of that
     now = datetime.utcfromtimestamp(epotime)
@@ -106,7 +112,7 @@ if __name__ == "__main__":
     print("Check exposure of Alice and Bob.")
     print("Alice: (not positive)")
     alice.ctmgr.check_infected(infections_SK, infectious_date.strftime(
-        "%Y-%m-%d"), datetime.utcfromtimestamp(epotime))
+        "%Y-%m-%d"), published_date.strftime("%Y-%m-%d"))
     print("Bob: (at risk)")
     bob.ctmgr.check_infected(infections_SK, infectious_date.strftime(
-        "%Y-%m-%d"), datetime.utcfromtimestamp(epotime))
+        "%Y-%m-%d"), published_date.strftime("%Y-%m-%d"))
