@@ -91,6 +91,17 @@ if __name__ == "__main__":
     bob.next_day()
     isidor.next_day()
 
+    # Alice receives a replay and should not be positive because of that
+    now = datetime.utcfromtimestamp(epotime)
+    bob_ephID = bob.keystore.get_current_ephID(now)
+    isidor_ephID = isidor.keystore.get_current_ephID(now)
+    # The point is that anyone can compute isidor_ephID at this point since infections_SK has been publicly published at B
+    alice.ctmgr.receive_scans([isidor_ephID], now=now)
+    now = now + timedelta(seconds=LowCostDP3T.CONTACT_THRESHOLD+1)
+    alice.ctmgr.receive_scans([isidor_ephID], now=now)
+    # Process the received beacons
+    alice.next_epoch()
+
     # Check infectiousness
     print("Check exposure of Alice and Bob.")
     print("Alice: (not positive)")
